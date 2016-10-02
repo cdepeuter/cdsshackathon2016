@@ -1,6 +1,7 @@
 train=read.csv("train.csv")
 product=read.csv("product_attributes.csv")
 store=read.csv("store_features.csv")
+library(dplyr)
 train=tbl_df(train)
 all_sales=train %>% group_by(product_key) %>% summarise(all_sales=sum(total_sales))
 promo_sales= train %>% group_by(product_key) %>% summarise(promo_sales=sum(promotional_sales))
@@ -8,6 +9,8 @@ promo_percentage=data.frame(product_key=promo_sales$product_key,promo_percent=(p
 promo_percentage=tbl_df(promo_percentage)
 promo_percentage=arrange(promo_percentage,desc(promo_percent))
 badcount=matrix(0,nrow=60,ncol=1)
+for(i in 1:length(train$product_key)){
+  if(as.character(train$join_quality[i]) == "ONLY REPL"){badcount[train$product_key[i]]=badcount[train$product_key[i]]+1}}
 badcount=tbl_df(badcount)
 badcountrank=cbind(badcount,p_key=rownames(badcount))
 badcountrank=arrange(badcount,desc(V1))
@@ -26,4 +29,3 @@ ratios=traintest %>% group_by(product_key) %>% summarise(mean_ratio=(mean(ratio)
 a1=cbind(product_key=ratios$product_key,all_sales=all_sales$all_sales,badcount=badcount$V1,ratio=ratios$mean_ratio)
 a1=data.frame(a1)
 ggplot(a1,aes(x=product_key,fill=ratio))+geom_bar()+facet_wrap(~all_sales)
-print("DONE")
